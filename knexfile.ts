@@ -1,6 +1,9 @@
-// Update with your config settings.
+import type { Knex } from 'knex';
+import { config } from 'dotenv';
 
-require('dotenv');
+config();
+
+// Update with your config settings.
 
 const connection = {
   host: process.env.DB_HOST,
@@ -10,10 +13,7 @@ const connection = {
   database: 'demo_credit',
 };
 
-/**
- * @type { Object.<string, import("knex").Knex.Config> }
- */
-module.exports = {
+const knexConfig: { [key: string]: Knex.Config } = {
   development: {
     client: 'mysql2',
     connection: connection,
@@ -22,6 +22,7 @@ module.exports = {
   staging: {
     client: 'mysql2',
     connection: connection,
+
     pool: {
       min: 2,
       max: 10,
@@ -43,3 +44,5 @@ module.exports = {
     },
   },
 };
+
+module.exports = knexConfig;
