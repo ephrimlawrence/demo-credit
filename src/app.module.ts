@@ -3,6 +3,7 @@ import { KnexModule } from 'nestjs-knex';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { config } from 'dotenv';
+import { AuthModule } from './auth/auth.module';
 
 config();
 
@@ -21,6 +22,7 @@ config();
         },
       },
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
