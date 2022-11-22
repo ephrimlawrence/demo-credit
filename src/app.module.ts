@@ -4,11 +4,26 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { config } from 'dotenv';
 import { AuthModule } from './auth/auth.module';
+import { RouterModule, Routes } from '@nestjs/core';
 
 config();
 
+
+const routes: Routes = [
+  {
+    path: '/api',
+    children: [
+      {
+        path: '/auth', module: AuthModule
+      }
+    ]
+  }
+]
+
 @Module({
   imports: [
+    RouterModule.register(routes),
+
     KnexModule.forRoot({
       config: {
         client: 'mysql2',
@@ -27,4 +42,4 @@ config();
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
