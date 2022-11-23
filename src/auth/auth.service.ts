@@ -18,14 +18,27 @@ export class AuthService {
     ) { }
 
     async create(dto: SignupDto) {
+        // TODO: check for email conflicts
+        // TODO: put logic in a transaction
+
         // Create new user
         const user = await this.knex('users')
             .insert({
                 ...dto,
                 password: await bcrypt.hash(dto.password, saltOrRounds),
-            }) // Resolves to User | undefined
+            })
 
-        return this.findById(user[0]);
+        // Create new account for the user
+        const userId = user[0];
+        await this.knex('accounts')
+            .insert({
+                currency: "₦",
+                userId: userId,
+                accountNo: `ACCT${userId.toString().padStart(4, "0")}`,
+                balance: 0,
+            })
+
+        return this.findById(userId);
     }
 
     async findById(id: number): Promise<User> {

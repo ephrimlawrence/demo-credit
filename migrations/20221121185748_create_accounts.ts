@@ -5,7 +5,8 @@ export async function up(knex: Knex): Promise<void> {
     table.increments();
     table.bigInteger('balance');
     table.string('currency').notNullable();
-    table.integer('user_id').notNullable();
+    table.string('accountNo').notNullable();
+    table.integer('userId').notNullable();
     // table.integer('user_id').references('id').inTable('users');
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('updated_at').defaultTo(knex.fn.now());
