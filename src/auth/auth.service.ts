@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
-import { SignupDto } from './signup/signup.dto';
+import { SignupDto } from './auth.dto';
 import * as bcrypt from 'bcrypt';
 
 
@@ -35,4 +35,17 @@ export class AuthService {
 
         return user;
     }
+
+    async validateUser(email: string, pass: string): Promise<any> {
+        const user = await this.knex<User>('users')
+            .where('email', email)
+            .first();
+
+            if (user && user.password === pass) {
+            const { password, ...result } = user;
+            return result;
+        }
+        return null;
+    }
+
 }
