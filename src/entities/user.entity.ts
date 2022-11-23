@@ -1,4 +1,9 @@
-interface User {
+interface Timestamps {
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+interface User extends Timestamps {
     id: number;
     email: string;
     password: string;
@@ -6,6 +11,4 @@ interface User {
     lastName: string;
     nextOfKin: string;
     otherNames?: string;
-    createdAt: Date;
-    updatedAt: Date;
 }

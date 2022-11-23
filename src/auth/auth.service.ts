@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import { LoginDto, SignupDto } from './auth.dto';
 import * as bcrypt from 'bcrypt';
@@ -47,7 +47,7 @@ export class AuthService {
             .first();
 
         if (user == null) {
-            throw new BadRequestException("Oop! The user cannot be found")
+            throw new NotFoundException("Oop! The user cannot be found")
         }
 
         delete user.password;

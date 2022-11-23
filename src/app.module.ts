@@ -5,6 +5,9 @@ import { AppService } from './app.service';
 import { config } from 'dotenv';
 import { AuthModule } from './auth/auth.module';
 import { RouterModule, Routes } from '@nestjs/core';
+import { DepositsController } from './deposits/deposits.controller';
+import { AccountsController } from './accounts/accounts.controller';
+import { AccountsService } from './accounts/accounts.service';
 
 config();
 
@@ -39,7 +42,7 @@ const routes: Routes = [
     }),
     AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, DepositsController, AccountsController],
+  providers: [AppService, AccountsService],
 })
 export class AppModule { }
