@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { ApiBearerAuth, ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, Min } from 'class-validator';
@@ -7,9 +7,9 @@ import { AccountsService } from 'src/accounts/accounts.service';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt.strategy';
 
-class DepositDto {
+class WithdrawalDto {
     @ApiProperty({
-        description: "The amount to be deposited into the user's account",
+        description: "The amount to be withdrawn from the user's account",
         example: 10000
     })
     @Type(() => Number)
@@ -19,10 +19,9 @@ class DepositDto {
     amount: number;
 }
 
-
 @ApiBearerAuth()
-@Controller('api/deposits')
-export class DepositsController {
+@Controller('api/withdrawals')
+export class WithdrawalsController {
     constructor(
         @InjectKnex() private readonly knex: Knex,
         private readonly accountService: AccountsService
@@ -30,15 +29,23 @@ export class DepositsController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async create(@Body() dto: DepositDto, @Request() req) {
+    async create(@Body() dto: WithdrawalDto, @Request() req) {
         const user = (req.user as User);
         const account = await this.accountService.findByUserId(user.id)
 
+        if (account.balance == 0) {
+            throw new ForbiddenException("Not enough balance in your account")
+        }
+
+        if ((account.balance - dto.amount) <= 0) {
+            throw new ForbiddenException("Amount to withdraw is more than account balance")
+        }
+
         // TODO: user transaction
-        await this.knex("deposits").insert({ accountId: account.id, amount: dto.amount });
+        await this.knex("withdrawals").insert({ accountId: account.id, amount: dto.amount });
 
-        await this.accountService.increaseBalance({ id: account.id, amount: dto.amount })
+        await this.accountService.decreaseBalance({ id: account.id, amount: dto.amount })
 
-        return { message: "Amount deposited into account successfully" }
+        return { message: "Amount withdrawn successfully" }
     }
 }
