@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PickType } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 
 export class SignupDto {
@@ -55,3 +55,5 @@ export class SignupDto {
     @MinLength(1)
     nextOfKin: string;
 }
+
+export class LoginDto extends PickType(SignupDto, ["email", "password"] as const) { }

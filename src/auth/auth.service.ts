@@ -1,14 +1,20 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
-import { SignupDto } from './auth.dto';
+import { LoginDto, SignupDto } from './auth.dto';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { validate } from 'class-validator';
+import { plainToClass, plainToInstance } from 'class-transformer';
 
 
 const saltOrRounds = 10;
+
+
 @Injectable()
 export class AuthService {
     constructor(
         @InjectKnex() private readonly knex: Knex,
+        private jwtService: JwtService
     ) { }
 
     async create(dto: SignupDto) {
@@ -36,16 +42,29 @@ export class AuthService {
         return user;
     }
 
-    async validateUser(email: string, pass: string): Promise<any> {
+
+    async validateUser(dto: LoginDto): Promise<any> {
+        // const data = await validate(plainToInstance(LoginDto, { email, password }))
+        // console.log(data);
+
         const user = await this.knex<User>('users')
-            .where('email', email)
+            .where('email', dto.email)
             .first();
 
-            if (user && user.password === pass) {
+        if (user && bcrypt.compareSync(dto.password, user.password)) {
             const { password, ...result } = user;
             return result;
         }
         return null;
+    }
+
+    async login(dto: LoginDto) {
+        const user = await this.validateUser(dto);
+
+        const payload = { email: user.email, sub: user.id };
+        return {
+            access_token: this.jwtService.sign(payload),
+        };
     }
 
 }
