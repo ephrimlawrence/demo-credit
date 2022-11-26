@@ -13,7 +13,19 @@ export class AccountsService {
             .first();
 
         if (data == null) {
-            throw new NotFoundException("Oop! The user cannot be found")
+            throw new NotFoundException("Oop! The account cannot be found")
+        }
+
+        return data;
+    }
+
+    async findByAccountNo(accountNo: string): Promise<Account> {
+        const data = await this.knex<Account>('accounts')
+            .where('accountNo', accountNo)
+            .first();
+
+        if (data == null) {
+            throw new NotFoundException("Oop! The account cannot be found")
         }
 
         return data;

@@ -9,6 +9,7 @@ import { DepositsController } from './deposits/deposits.controller';
 import { AccountsController } from './accounts/accounts.controller';
 import { AccountsService } from './accounts/accounts.service';
 import { WithdrawalsController } from './withdrawals/withdrawals.controller';
+import { TransfersController } from './transfers/transfers.controller';
 
 config();
 
@@ -43,7 +44,7 @@ const routes: Routes = [
     }),
     AuthModule,
   ],
-  controllers: [AppController, DepositsController, AccountsController, WithdrawalsController],
+  controllers: [AppController, DepositsController, AccountsController, WithdrawalsController, TransfersController],
   providers: [AppService, AccountsService],
 })
 export class AppModule { }
