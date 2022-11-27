@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import { LoginDto, SignupDto } from './auth.dto';
 import * as bcrypt from 'bcrypt';
@@ -19,7 +19,13 @@ export class AuthService {
     ) { }
 
     async create(dto: SignupDto) {
-        // TODO: check for email conflicts
+        const existing = await this.knex('users')
+            .where({ email: dto.email }).first();
+
+        if (existing != null) {
+            throw new ConflictException("Email already exists")
+        };
+
         // TODO: put logic in a transaction
 
         // Create new user
