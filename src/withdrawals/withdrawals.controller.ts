@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Request, ForbiddenException, Get } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Request, ForbiddenException, Get, InternalServerErrorException } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, Min } from 'class-validator';
@@ -48,12 +48,21 @@ export class WithdrawalsController {
             throw new ForbiddenException("Amount to withdraw is more than account balance")
         }
 
-        // TODO: user transaction
-        await this.knex("withdrawals").insert({ accountId: account.id, amount: dto.amount });
+        let id: number;
+        try {
+            await this.knex.transaction(async trx => {
+                // TODO: user transaction
+                [id] = await trx("withdrawals").insert({ accountId: account.id, amount: dto.amount });
 
-        await this.accountService.decreaseBalance({ id: account.id, amount: dto.amount })
+                await this.accountService.decreaseBalance({ id: account.id, amount: dto.amount, knex: trx })
+            });
 
-        return { message: "Amount withdrawn successfully" }
+            return await this.knex("withdrawals").where({ id: id?.toString() }).first()
+        } catch (error) {
+            console.error(error);
+
+            throw new InternalServerErrorException("An error occurred while processing request. Contact customer support for assistance")
+        }
     }
 
     @ApiOperation({
