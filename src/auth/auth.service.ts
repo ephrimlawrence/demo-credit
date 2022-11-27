@@ -73,7 +73,8 @@ export class AuthService {
             const { password, ...result } = user;
             return result;
         }
-        return null;
+
+        throw new UnauthorizedException("Invalid email or password");
     }
 
     async login(dto: LoginDto) {
