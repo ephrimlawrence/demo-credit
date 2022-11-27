@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards, Request, ForbiddenException, Get } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiProperty } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, Min } from 'class-validator';
 import { InjectKnex, Knex } from 'nestjs-knex';
@@ -20,6 +20,7 @@ class WithdrawalDto {
     amount: number;
 }
 
+@ApiTags("Withdrawals")
 @ApiBearerAuth()
 @Controller('api/withdrawals')
 export class WithdrawalsController {

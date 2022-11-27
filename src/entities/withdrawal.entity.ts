@@ -5,7 +5,7 @@ import { Timestamps } from "./user.entity";
 
 export class WithdrawalDto extends Timestamps {
     @ApiProperty({
-        description: "Amount that was deposited",
+        description: "Amount that was withdrawn",
         example: 1000
     })
     @IsNotEmpty()
@@ -14,7 +14,7 @@ export class WithdrawalDto extends Timestamps {
     amount;
 
     @ApiProperty({
-        description: "Id of the account which the money was deposited into",
+        description: "Id of the account which the money was withdrawn from",
         example: "ACT1000"
     })
     @IsNotEmpty()
