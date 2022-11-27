@@ -1,34 +1,19 @@
-import { Body, Controller, Post, UseGuards, Request, ForbiddenException } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiProperty } from '@nestjs/swagger';
+import { Body, Controller, Post, UseGuards, Request, ForbiddenException, Get } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags, PickType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import { AccountsService } from 'src/accounts/accounts.service';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt.strategy';
+import { TransferDto } from 'src/entities/transfer.entity';
 import { User, UserDto } from 'src/entities/user.entity';
 
-class TransferDto {
-    @ApiProperty({
-        description: "The amount to be deposited into the user's account",
-        example: 10000
-    })
-    @Type(() => Number)
-    @IsNotEmpty()
-    @IsNumber()
-    @Min(1)
-    amount: number;
-
-    @ApiProperty({
-        description: "The account number which the amount is being transferred to",
-        example: "ACCT00443"
-    })
-    @IsNotEmpty()
-    @IsString()
-    to: string;
+class CreateTransferDto extends PickType(TransferDto, ["amount", "toAccountId"] as const) {
 }
 
 
+@ApiTags("Transfers")
 @ApiBearerAuth()
 @Controller('api/transfers')
 export class TransfersController {
@@ -38,12 +23,12 @@ export class TransfersController {
     ) { }
 
     @ApiOperation({
-        operationId: "Transfers",
+        operationId: "Create Transfer",
         description: "Transfer money from one account to other another. <br><strong>NOTE:</strong> The authenticated user's account is used as the source account"
     })
     @UseGuards(JwtAuthGuard)
     @Post()
-    async create(@Body() dto: TransferDto, @Request() req) {
+    async create(@Body() dto: CreateTransferDto, @Request() req): Promise<TransferDto> {
         const user = (req.user as UserDto);
         const fromAccount = await this.accountService.findByUserId(user.id)
 
@@ -57,10 +42,10 @@ export class TransfersController {
         }
 
 
-        const toAccount = await this.accountService.findByAccountNo(dto.to)
+        const toAccount = await this.accountService.findByAccountNo(dto.toAccountId.toString())
 
         // TODO: user transaction
-        await this.knex("transfers").insert({ from_account_id: fromAccount.id, amount: dto.amount, to_account_id: toAccount.id });
+        const [id] = await this.knex("transfers").insert({ from_account_id: fromAccount.id, amount: dto.amount, to_account_id: toAccount.id });
 
         // Decrease sender's account balance
         await this.accountService.decreaseBalance({ id: fromAccount.id, amount: dto.amount })
@@ -68,6 +53,22 @@ export class TransfersController {
         // Increase receiver's account balance
         await this.accountService.increaseBalance({ id: toAccount.id, amount: dto.amount })
 
-        return { message: "Amount transferred successfully" }
+        // Fetch transfer record
+        const transfer = await this.knex<TransferDto>("transfers").where({ id: id }).first();
+        return transfer;
+    }
+
+    @ApiOperation({
+        operationId: "All Transfers",
+    })
+    @UseGuards(JwtAuthGuard)
+    @Get()
+    async findAll(@Request() req): Promise<TransferDto[]> {
+        const user = (req.user as UserDto);
+        const account = await this.accountService.findByUserId(user.id)
+
+        const transfers = await this.knex<TransferDto>("transfers").orWhere({ fromAccountId: account.id }).orWhere({ toAccountId: account.id });
+
+        return transfers;
     }
 }

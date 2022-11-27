@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
+import { Account } from 'src/entities/account.entity';
 
 @Injectable()
 export class AccountsService {

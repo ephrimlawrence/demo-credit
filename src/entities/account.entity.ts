@@ -1,4 +1,6 @@
-interface Account {
+import { UserDto } from "./user.entity";
+
+export class Account {
     id: number;
     userId: number;
     accountNo: string;
@@ -7,6 +9,5 @@ interface Account {
     updatedAt: Date;
 
 
-    user: User;
-
+    user: UserDto;
 }
