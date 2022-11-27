@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Request, Get } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Request, Get, InternalServerErrorException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags, PickType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, Min } from 'class-validator';
@@ -32,14 +32,24 @@ export class DepositsController {
         const user = (req.user as UserDto);
         const account = await this.accountService.findByUserId(user.id)
 
-        // TODO: user transaction
-        const [id] = await this.knex("deposits").insert({ accountId: account.id, amount: dto.amount });
+        let id: number | undefined;
 
-        await this.accountService.increaseBalance({ id: account.id, amount: dto.amount })
+        try {
+            await this.knex.transaction(async trx => {
+                [id] = await trx("deposits").insert({ accountId: account.id, amount: dto.amount });
 
-        // Fetch deposit record
-        const deposit = await this.knex<DepositDto>("deposits").where({ id: id }).first();
-        return deposit
+                await this.accountService.increaseBalance({ id: account.id, amount: dto.amount, knex: trx })
+            });
+
+            // Fetch deposit record
+            const deposit = await this.knex<DepositDto>("deposits").where({ id: id }).first();
+
+            return deposit;
+        } catch (error) {
+            console.error(error);
+
+            throw new InternalServerErrorException("An error occurred while processing deposit. Contact customer support for assistance")
+        }
     }
 
     @ApiOperation({

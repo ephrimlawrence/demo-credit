@@ -1,5 +1,4 @@
 import { ApiExtraModels, ApiProperty, PickType } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { User, UserDto } from "src/entities/user.entity";
 
 @ApiExtraModels(User)

@@ -44,8 +44,8 @@ export class AccountsService {
         return data;
     }
 
-    async increaseBalance(opts: { id: number, amount: number }) {
-        return await this.knex<Account>("accounts").where("id", opts.id).increment("balance", opts.amount);
+    async increaseBalance(opts: { id: number, amount: number, knex?: Knex }) {
+        return await (opts.knex ?? this.knex)<Account>("accounts").where("id", opts.id).increment("balance", opts.amount);
     }
 
     async decreaseBalance(opts: { id: number, amount: number }) {
