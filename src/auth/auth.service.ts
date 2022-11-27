@@ -1,10 +1,8 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import { LoginDto, SignupDto } from './auth.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { validate } from 'class-validator';
-import { plainToClass, plainToInstance } from 'class-transformer';
 import { User, UserDto } from 'src/entities/user.entity';
 
 
@@ -26,26 +24,31 @@ export class AuthService {
             throw new ConflictException("Email already exists")
         };
 
-        // TODO: put logic in a transaction
+        let userId: number | undefined;
+        try {
+            await this.knex.transaction(async trx => {
+                // Create new user
+                [userId] = await trx('users').insert({
+                    ...dto,
+                    password: await bcrypt.hash(dto.password, saltOrRounds),
+                })
 
-        // Create new user
-        const user = await this.knex('users')
-            .insert({
-                ...dto,
-                password: await bcrypt.hash(dto.password, saltOrRounds),
-            })
+                // Create new account for the user
+                await trx('accounts')
+                    .insert({
+                        currency: "₦",
+                        userId: userId,
+                        accountNo: `ACCT${userId.toString().padStart(4, "0")}`,
+                        balance: 0,
+                    })
+            });
 
-        // Create new account for the user
-        const userId = user[0];
-        await this.knex('accounts')
-            .insert({
-                currency: "₦",
-                userId: userId,
-                accountNo: `ACCT${userId.toString().padStart(4, "0")}`,
-                balance: 0,
-            })
+            return this.findById(userId);
+        } catch (error) {
+            console.error(error);
 
-        return this.findById(userId);
+            throw new InternalServerErrorException("An error occurred while processing request. Contact customer support for assistance")
+        }
     }
 
     async findById(id: number): Promise<UserDto> {
