@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { validate } from 'class-validator';
 import { plainToClass, plainToInstance } from 'class-transformer';
+import { User, UserDto } from 'src/entities/user.entity';
 
 
 const saltOrRounds = 10;
@@ -41,16 +42,14 @@ export class AuthService {
         return this.findById(userId);
     }
 
-    async findById(id: number): Promise<User> {
-        const user = await this.knex<User>('users')
+    async findById(id: number): Promise<UserDto> {
+        const user = await this.knex<UserDto>('users')
             .where('id', id)
             .first();
 
         if (user == null) {
             throw new NotFoundException("Oop! The user cannot be found")
         }
-
-        delete user.password;
 
         return user;
     }

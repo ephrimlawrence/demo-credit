@@ -6,6 +6,7 @@ import { InjectKnex, Knex } from 'nestjs-knex';
 import { AccountsService } from 'src/accounts/accounts.service';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt.strategy';
+import { User, UserDto } from 'src/entities/user.entity';
 
 class TransferDto {
     @ApiProperty({
@@ -43,7 +44,7 @@ export class TransfersController {
     @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() dto: TransferDto, @Request() req) {
-        const user = (req.user as User);
+        const user = (req.user as UserDto);
         const fromAccount = await this.accountService.findByUserId(user.id)
 
 

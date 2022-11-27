@@ -6,6 +6,7 @@ import { InjectKnex, Knex } from 'nestjs-knex';
 import { AccountsService } from 'src/accounts/accounts.service';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt.strategy';
+import { UserDto } from 'src/entities/user.entity';
 
 class DepositDto {
     @ApiProperty({
@@ -35,7 +36,7 @@ export class DepositsController {
     @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() dto: DepositDto, @Request() req) {
-        const user = (req.user as User);
+        const user = (req.user as UserDto);
         const account = await this.accountService.findByUserId(user.id)
 
         // TODO: user transaction

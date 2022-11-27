@@ -1,13 +1,9 @@
 import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { LoginDto, SignupDto } from './auth.dto';
+import { LoginDto, LoginResponseDto, SignupDto } from './auth.dto';
 import { ApiCreatedResponse, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 
-class LoginResponseDto {
-    @ApiProperty({ description: "Bearer token that must be inlcuded in all subsequent request" })
-    accessToken: string;
-}
 
 @ApiTags("Authentication")
 @Controller()

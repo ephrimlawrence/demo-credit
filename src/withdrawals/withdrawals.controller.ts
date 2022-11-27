@@ -1,11 +1,12 @@
-import { Body, Controller, Post, UseGuards, Request, ForbiddenException } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiProperty } from '@nestjs/swagger';
+import { Body, Controller, Post, UseGuards, Request, ForbiddenException, Get } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, Min } from 'class-validator';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import { AccountsService } from 'src/accounts/accounts.service';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt.strategy';
+import { User } from 'src/entities/user.entity';
 
 class WithdrawalDto {
     @ApiProperty({
@@ -28,9 +29,10 @@ export class WithdrawalsController {
     ) { }
 
     @ApiOperation({
-        operationId: "Withdraw",
+        operationId: "Request Withdraw",
         description: "Withdraw an money from the user's account"
     })
+    @ApiCreatedResponse({ type: WithdrawalDto })
     @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() dto: WithdrawalDto, @Request() req) {
@@ -51,5 +53,20 @@ export class WithdrawalsController {
         await this.accountService.decreaseBalance({ id: account.id, amount: dto.amount })
 
         return { message: "Amount withdrawn successfully" }
+    }
+
+    @ApiOperation({
+        operationId: "All Withdraws",
+        description: "List of all withdrawals made by the user"
+    })
+    @UseGuards(JwtAuthGuard)
+    @Get()
+    async findAll(@Request() req): Promise<WithdrawalDto[]> {
+        const user = (req.user as User);
+        const account = await this.accountService.findByUserId(user.id)
+
+        const resp = await this.knex("withdrawals").where({ accountId: account.id });
+
+        return resp;
     }
 }
