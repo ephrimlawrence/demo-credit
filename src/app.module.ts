@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { KnexModule } from 'nestjs-knex';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { config } from 'dotenv';
 import { AuthModule } from './auth/auth.module';
@@ -44,7 +43,7 @@ const routes: Routes = [
     }),
     AuthModule,
   ],
-  controllers: [AppController, DepositsController, AccountsController, WithdrawalsController, TransfersController],
+  controllers: [DepositsController, AccountsController, WithdrawalsController, TransfersController],
   providers: [AppService, AccountsService],
 })
 export class AppModule { }

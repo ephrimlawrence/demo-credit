@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards, Request, ForbiddenException } from '@nestjs/common';
-import { ApiBearerAuth, ApiProperty } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 import { InjectKnex, Knex } from 'nestjs-knex';
@@ -36,6 +36,10 @@ export class TransfersController {
         private readonly accountService: AccountsService
     ) { }
 
+    @ApiOperation({
+        operationId: "Transfers",
+        description: "Transfer money from one account to other another. <br><strong>NOTE:</strong> The authenticated user's account is used as the source account"
+    })
     @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() dto: TransferDto, @Request() req) {

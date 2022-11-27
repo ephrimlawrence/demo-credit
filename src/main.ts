@@ -3,9 +3,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import * as fs from 'fs';
 import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(join(__dirname, '..', 'public'));
 
   // enable global validation
   app.useGlobalPipes(
@@ -19,17 +23,16 @@ async function bootstrap() {
 
 
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('Demo Credit API Docs')
+    .setDescription('API documentation for Demo Credit application')
     .setVersion('1.0')
-    .addTag('cats')
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   fs.writeFileSync('public/swagger-spec.json', JSON.stringify(document));
 
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('swagger', app, document);
 
   await app.listen(3000);
 }
