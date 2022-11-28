@@ -24,17 +24,18 @@ export class AuthService {
             throw new ConflictException("Email already exists")
         };
 
-        let userId: number | undefined;
+        let userId: number | undefined,
+            accountId: number;
         try {
             await this.knex.transaction(async trx => {
                 // Create new user
                 [userId] = await trx('users').insert({
                     ...dto,
                     password: await bcrypt.hash(dto.password, saltOrRounds),
-                })
+                });
 
                 // Create new account for the user
-                await trx('accounts')
+                [accountId] = await trx('accounts')
                     .insert({
                         currency: "₦",
                         userId: userId,
@@ -43,7 +44,7 @@ export class AuthService {
                     })
             });
 
-            return this.findById(userId);
+            return { ...this.findById(userId), accountId }
         } catch (error) {
             console.error(error);
 

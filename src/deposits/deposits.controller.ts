@@ -31,7 +31,6 @@ export class DepositsController {
     async create(@Body() dto: CreateDepositDto, @Request() req): Promise<DepositDto> {
         const user = (req.user as UserDto);
         const account = await this.accountService.findByUserId(user.id)
-
         let id: number | undefined;
 
         try {

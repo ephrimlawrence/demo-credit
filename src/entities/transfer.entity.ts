@@ -18,15 +18,17 @@ export class TransferDto extends Timestamps {
         description: "The account number which the amount is being transferred from",
         example: "ACCT00442"
     })
+    @Type(() => Number)
     @IsNotEmpty()
-    @IsString()
+    @IsNumber()
     fromAccountId: number;
 
     @ApiProperty({
         description: "The account number which the amount is being transferred to",
         example: "ACCT00443"
     })
+    @Type(() => Number)
     @IsNotEmpty()
-    @IsString()
+    @IsNumber()
     toAccountId: number;
 }

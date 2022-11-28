@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Request, ForbiddenException, Get } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Request, ForbiddenException, Get, InternalServerErrorException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags, PickType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
@@ -32,7 +32,6 @@ export class TransfersController {
         const user = (req.user as UserDto);
         const fromAccount = await this.accountService.findByUserId(user.id)
 
-
         if (fromAccount.balance == 0) {
             throw new ForbiddenException("Not enough balance in your account")
         }
@@ -41,21 +40,29 @@ export class TransfersController {
             throw new ForbiddenException("Amount to transfer is more than account balance")
         }
 
+        const toAccount = await this.accountService.findById(dto.toAccountId);
+        try {
+            let id: number;
 
-        const toAccount = await this.accountService.findByAccountNo(dto.toAccountId.toString())
+            await this.knex.transaction(async trx => {
+                [id] = await trx("transfers").insert({ fromAccountId: fromAccount.id, amount: dto.amount, toAccountId: toAccount.id });
 
-        // TODO: user transaction
-        const [id] = await this.knex("transfers").insert({ from_account_id: fromAccount.id, amount: dto.amount, to_account_id: toAccount.id });
+                // Decrease sender's account balance
+                await this.accountService.decreaseBalance({ id: fromAccount.id, amount: dto.amount, knex: trx })
 
-        // Decrease sender's account balance
-        await this.accountService.decreaseBalance({ id: fromAccount.id, amount: dto.amount })
+                // Increase receiver's account balance
+                await this.accountService.increaseBalance({ id: toAccount.id, amount: dto.amount, knex: trx })
+            });
 
-        // Increase receiver's account balance
-        await this.accountService.increaseBalance({ id: toAccount.id, amount: dto.amount })
+            // Fetch transfer record
+            const transfer = await this.knex<TransferDto>("transfers").where({ id: id }).first();
 
-        // Fetch transfer record
-        const transfer = await this.knex<TransferDto>("transfers").where({ id: id }).first();
-        return transfer;
+            return transfer;
+        } catch (error) {
+            console.error(error);
+
+            throw new InternalServerErrorException("An error occurred while processing request. Contact customer support for assistance")
+        }
     }
 
     @ApiOperation({
