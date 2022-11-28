@@ -27,6 +27,7 @@ async function bootstrap() {
     .setDescription('API documentation for Demo Credit application')
     .setVersion('1.0')
     .addBearerAuth()
+    .setBasePath(`${process.env.APP_URL}/api`)
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -54,7 +54,10 @@ $ npm run test:cov
 
 ## Database
 Below is the ER Diagram of the database. <br>
-* sdf
-
-
 <img alt="ER Diagram" src="./er-diagram.jpg" width="100%">
+
+There are five tables, *accounts, deposits, users, transfers, withdrawals*
+* A user can have multiple accounts
+* Deposits table records all deposits into various accounts of the user
+* Transfers table records all the transfers made the user
+* Withdrawals table records user withdrawals
