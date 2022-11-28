@@ -34,7 +34,7 @@ const routes: Routes = [
         useNullAsDefault: true,
         connection: {
           host: process.env.DB_HOST,
-          port: 3306,
+          port: +process.env.DB_PORT,
           user: process.env.DB_USERNAME,
           password: process.env.DB_PASSWORD,
           database: 'demo_credit',
